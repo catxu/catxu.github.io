@@ -92,4 +92,36 @@ append() 函数，count 却只增加了 1。显然与期望逻辑不符。
 2. 单线程操作字符串缓冲区下操作大量数据 StringBuilder，StringBuilder 是
 jdk1.5 之后引入的，之前只能使用 StringBuffer。
 3. 在频繁进行字符串运算（如拼接、替换、删除等），并且运行在多线程环境中，
-则可以考虑使用 StringBuffer，例如XML解析、HTTP参数解析和封装。
+则可以考虑使用 StringBuffer，例如 XML 解析、HTTP 参数解析和封装。
+
+Java 多线程编程注意事项
+1. start() 方法的调用后并不是立即执行多线程代码，而是使得该线程变为可运行
+态（Runnable），什么时候运行是由操作系统决定的。
+2. join() 的作用是：等待该线程终止。
+3. sleep() 睡眠时，保持对象锁，仍然占有该锁；而wait() 睡眠时，释放对象锁。
+wait()和 sleep() 都可以通过 interrupt() 方法打断线程的暂停状态，从而使线程
+立刻抛出 InterruptedException。
+4. sleep 是 Thread 方法，使用时需要捕获异常，而 wait，notify 和 notifyAll 不需要捕获异常
+
+Java 异常的分类
+Throwable
+	Exception
+		RuntimeException
+			NullPointerException
+			ArithmeticException
+			ArrayIndexOutOfBoundException
+			ClassNotFoundException
+			IllegalArgumentException 
+		非运行时异常
+			IOException
+			FileNotFoundException
+			SQLException
+		其他
+			NoSuchMethodException
+			IllegalAccessException
+	Error
+		NoClassDefFoundError
+
+自定义异常
+定义一个类 TestExcpetion extends Exception() {}
+然后在程序中抛出 throw new TestException();
