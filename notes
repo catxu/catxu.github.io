@@ -17,3 +17,77 @@ List 类和 Set 类
 List 类和 Set 类是 Collection 集合接口的子接口。
 Set 子接口：无序，不允许重复。
 List 子接口：有序，可以有重复元素。
+
+BigDecimal、Double 的区别以及使用场景
+对于不需要准确计算精度的数字可以直接使用 float 或 double，但是如果
+需要精确计算的结果，则必须使用 BigDecimal 类，使用 BigDecimal 类也
+可以进行大数的操作。
+Double.toString 会使用一定的精度来四舍五入 double，然后再输出。
+
+String, StringBuffer 与 StringBuilder 的区别及应用场景
+String 字符串常量
+StringBuffer 字符串变量（线程安全）
+StringBuilder 字符串变量（非线程安全）
+
+String 和 StringBuffer 主要差别在于性能。当频繁对一个 String 对象进行修改的时候，
+String 的底层实现会产生许多 StringBuffer 的垃圾对象和 String 的垃圾对象。当 JVM 
+进行内存回收的时候，系统开销就会比较大。
+
+具体说原理的话，两个字符串相加，相当于执行了如下操作：
+str1 + str2 执行了下面的过程：
+StringBuffer sb1 = new StringBuffer(str1);
+sb1.append(str2);
+String result1 = sb1.toString();
+执行到最后，我们所需要的内容只有 result1 这一个对象，中间出现的 sb1 就成为了垃圾回收的目标。 
+
+此时，如果我们再加一个字符串的话……
+str1 + str2 + str3 相当于在上面的基础上又执行了
+StringBuffer sb2 = new StringBuffer(result1);
+sb2.append(str3);
+String result2 = sb2.toString();
+这时，对我们有用的对象只有 result2 一个。中间生成的 sb2 和 result1 都成为了垃圾回收的目标。
+如果继续追加下去，又会产生若干个 StringBuffer 的垃圾对象和 String 的垃圾对象。
+
+而相对来说使用 StringBuffer 来进行字符串连接的话，
+StringBuffer sb = new StringBuffer();
+sb.append(str1);
+sb.append(str2);
+.....
+sb.append(strN);
+String result = sb.toString();
+除了中间的一个StringBuffer对象最后会被弃掉，其他都是有效对象，比起上面的一堆垃圾，自然效率提高的不是一点半点。
+
+最后说一下 StringBuffer 和 StringBuilder
+所谓的线程安全就是多个线程修改同一个对象时可能产生的冲突问题。
+比如有一个 StringBuilder 对象，变量名为 stringBuilder, 在一个线程
+里执行 stringBuilder.append("0"); 的同时，另一个线程也执行同样的
+代码，就有可能出现无法预料的问题。出现问题的原因是在 StringBuilder 
+的 append() 方法中，不是只有一条语句，而是由若干语句。当线程 A 进入
+append() 函数时，另一个线程 B 可能在其中任意一条语句之后进入这个函数，
+从而再次执行函数中第一条语句，而接下来是执行线程 A 中即将继续执行的语
+句还是执行线程 B 中即将执行的第二句谁也说不清。
+
+实际剖析一下，可以看到 StringBuilder 里面实际执行的语句如下（实际是执行父类的内容）
+
+1 if (str == null) str = "null";
+2 int len = str.length();
+3 ensureCapacityInternal(count + len);
+4 str.getChars(0, len, value, count);
+5 count += len;
+6 return this;
+
+
+为了说明方便，加上行号。假设 StringBuilder 对象中的字符串长度为 10，
+也就是 count 为 10，我们追加的字符串为 "0"，也就是长度为 1。
+
+如果当 A 线程执行到 L5(L5代表第五行代码，下同)的时候，恰好线程 B 的
+代码进入函数，并取得运行权一直执行到 L6，此时在线程 B 中的 count 因
+为加上了 "0" 的长度，为 11。现在线程 A 再次开始执行，从 L5 开始执行，
+因为 count 的定义没有 volatile 关键字，所以很可能线程 A 中的 count 
+还是之前的 10，所以再次执行 L5，让 count 变成 11。结果明明执行了两次
+append() 函数，count 却只增加了 1。显然与期望逻辑不符。
+
+对于三者使用的总结：
+1. 如果要操作少量的数据用 String
+2. 单线程操作字符串缓冲区下操作大量数据 StringBuilder
+3. 多线程操作字符串缓冲区下操作大量数据 StringBuffer
