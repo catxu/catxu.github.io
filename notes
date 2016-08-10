@@ -89,5 +89,7 @@ append() 函数，count 却只增加了 1。显然与期望逻辑不符。
 
 对于三者使用的总结：
 1. 如果要操作少量的数据用 String
-2. 单线程操作字符串缓冲区下操作大量数据 StringBuilder
-3. 多线程操作字符串缓冲区下操作大量数据 StringBuffer
+2. 单线程操作字符串缓冲区下操作大量数据 StringBuilder，StringBuilder 是
+jdk1.5 之后引入的，之前只能使用 StringBuffer。
+3. 在频繁进行字符串运算（如拼接、替换、删除等），并且运行在多线程环境中，
+则可以考虑使用 StringBuffer，例如XML解析、HTTP参数解析和封装。
